@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Kim Seçildi?</title>
   <style>
+    body, .card, p, h1, #count, #result, #hint {
+  -webkit-user-select: none; /* Safari/Chrome */
+  -moz-user-select: none;    /* Firefox */
+  -ms-user-select: none;     /* IE/Edge */
+  user-select: none;         /* Diğer tarayıcılar */
+}
     body{margin:0;font-family:Helvetica,Arial;height:100vh;background:#CF9025;overflow:hidden}
     .card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
           width:92%;max-width:520px;background:#7D705F;border-radius:16px;
@@ -40,6 +46,7 @@
 <body>
   <div class="card">
     <h1>Parmaklarınızı koyun</h1>
+    <p id="hint">En fazla 6 kişi. Parmakları koyun ve 3 saniye bekleyin.</p>
     <div id="count">0 kişi</div>
     <div id="result"></div>
   </div>
@@ -139,6 +146,7 @@
   </script>
 </body>
 </html>
+
 
 
 
