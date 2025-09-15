@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Kim Seçildi?</title>
+  <style>
+    body{margin:0;font-family:Helvetica,Arial;height:100vh;background:#f7f7f8;overflow:hidden}
+    .card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+          width:92%;max-width:520px;background:#fff;border-radius:16px;
+          box-shadow:0 6px 20px rgba(0,0,0,.08);padding:28px;text-align:center;z-index:10}
+    h1{margin:0 0 6px;font-size:20px}
+    p{margin:0 0 16px;color:#555}
+    #count{font-size:38px;font-weight:700;margin:8px 0}
+    #result{margin-top:18px;font-size:22px;color:#111}
+    #hint{font-size:13px;color:#888;margin-top:6px}
+
+    .marker{
+      position:absolute;transform:translate(-50%,-50%);
+      width:60px;height:60px;border-radius:50%;
+      background:rgba(0,128,255,0.75);
+      color:#fff;font-size:22px;font-weight:bold;
+      display:flex;align-items:center;justify-content:center;
+      pointer-events:none;
+      animation: pulse 1.5s infinite;
+    }
+    .winner{
+      background:rgba(220,0,0,0.85)!important;
+      animation:none;
+      transform:translate(-50%,-50%) scale(1.4);
+      transition:all 0.4s ease;
+    }
+    @keyframes pulse {
+      0% { transform:translate(-50%,-50%) scale(1.0); }
+      50% { transform:translate(-50%,-50%) scale(1.2); }
+      100% { transform:translate(-50%,-50%) scale(1.0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Parmaklarınızı koyun</h1>
+    <p id="hint">En fazla 6 kişi. Parmakları koyun ve 3 saniye bekleyin.</p>
+    <div id="count">0 kişi</div>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    let currentCount = 0;
+    let timer = null;
+    const countEl = document.getElementById('count');
+    const resultEl = document.getElementById('result');
+    const hintEl = document.getElementById('hint');
+
+    const markers = {};
+
+    function updateCount(n){
+      currentCount = Math.min(6, n || 0);
+      countEl.textContent = currentCount + ' kişi';
+      if((n || 0) > 6) hintEl.textContent = 'En fazla 6 kişi alınır (fazlası sayılmaz)';
+      else hintEl.textContent = 'En fazla 6 kişi. Parmakları koyun ve 3 saniye bekleyin.';
+    }
+
+    function startTimer(){
+      clearTimeout(timer);
+      resultEl.textContent = 'Seçiliyor...';
+      timer = setTimeout(()=> {
+        if (currentCount > 0) {
+          const winner = Math.floor(Math.random() * currentCount) + 1;
+          resultEl.innerHTML = `<strong>Seçilen: #${winner}</strong>`;
+          highlightWinner(winner);
+        } else {
+          resultEl.textContent = 'Hiç parmak yok. Tekrar deneyin.';
+        }
+      }, 3000);
+    }
+
+    function cancelTimer(){
+      clearTimeout(timer);
+      resultEl.textContent = 'Seçim iptal edildi';
+    }
+
+    function clearMarkers(){
+      for (let id in markers){
+        markers[id].el.remove();
+      }
+      Object.keys(markers).forEach(k => delete markers[k]);
+    }
+
+    function highlightWinner(num){
+      for (let id in markers){
+        if (markers[id].num === num){
+          markers[id].el.classList.add("winner");
+        }
+      }
+    }
+
+    window.addEventListener('touchstart', e => {
+      clearMarkers();
+      Array.from(e.touches).forEach((t,i)=>{
+        let m = document.createElement('div');
+        m.className = 'marker';
+        m.textContent = (i+1);
+        m.style.left = t.pageX + 'px';
+        m.style.top = t.pageY + 'px';
+        document.body.appendChild(m);
+        markers[t.identifier] = {el:m, num:(i+1)};
+      });
+      updateCount(e.touches.length);
+      startTimer();
+    }, {passive:true});
+
+    window.addEventListener('touchmove', e => {
+      Array.from(e.touches).forEach((t,i)=>{
+        let m = markers[t.identifier];
+        if (m){
+          m.el.style.left = t.pageX + 'px';
+          m.el.style.top = t.pageY + 'px';
+        }
+      });
+      updateCount(e.touches.length);
+    }, {passive:true});
+
+    window.addEventListener('touchend', e => {
+      Array.from(e.changedTouches).forEach(t=>{
+        if (markers[t.identifier]){
+          markers[t.identifier].el.remove();
+          delete markers[t.identifier];
+        }
+      });
+      updateCount(e.touches.length);
+      if (currentCount === 0) cancelTimer();
+    });
+
+    window.addEventListener('touchcancel', e => {
+      clearMarkers();
+      updateCount(0);
+      cancelTimer();
+    });
+  </script>
+</body>
+</html>
